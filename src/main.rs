@@ -43,15 +43,16 @@ fn get_gpu_info(info_type: &str) -> String {
             .output()
             .expect("Failed to execute command");
 
+            // When output is valid, converting from utf8_lossy to String
         if output.status.success() {
             let result = String::from_utf8_lossy(&output.stdout);
             let str_result = String::from(result);
 
+            /* Converting str_result without whitespaces, dividing by 1000 and
+            and then returning as string */ 
             match str_result.trim().parse::<i32>() {
                 Ok(num) => {
-                    let result_divided = num / 1000;
-
-                    result_divided.to_string()
+                    (num / 1000).to_string()
                 },
                 Err(error) => panic!("Could not parse to i32!")
             }
