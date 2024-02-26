@@ -45,7 +45,17 @@ fn get_gpu_info(info_type: &str) -> String {
 
         if output.status.success() {
             let result = String::from_utf8_lossy(&output.stdout);
-            String::from(result)
+            let str_result = String::from(result);
+
+            match str_result.trim().parse::<i32>() {
+                Ok(num) => {
+                    let result_divided = num / 1000;
+
+                    result_divided.to_string()
+                },
+                Err(error) => panic!("Could not parse to i32!")
+            }
+
         } else {
             let result = String::from_utf8_lossy(&output.stderr);
             String::from(result)
