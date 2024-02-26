@@ -1,4 +1,4 @@
-use std::{error, process::Command};
+use std::process::Command;
 
 fn main() {
     println!("This is a radeon_info program in testing version\n");
