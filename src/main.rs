@@ -3,7 +3,7 @@ use std::process::Command;
 fn main() {
     let output = Command::new("bash")
         .arg("-c")
-        .arg("echo Hello from Rust!")
+        .arg("cat /sys/power/disk && cat /sys/power/image_size")
         .output()
         .expect("Failed to execute command");
 
