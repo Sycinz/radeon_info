@@ -10,4 +10,3 @@ edition = "2021"
 [[bin]]
 edition = "2021"
 name = "radeon_info"
-path = "/src/main.rs"
