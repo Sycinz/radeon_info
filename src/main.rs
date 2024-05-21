@@ -64,7 +64,7 @@ fn command_execution(command: &str) -> Output {
 }
 
 fn main() {
-    println!("This is a radeon_info program in testing version\n");
+    println!("This is a radeon_info program in beta version\n");
     println!("{}", get_gpu_info("frequency"));
     println!("{}", get_gpu_info("temperature")); // Other info_types will be added later
 }
