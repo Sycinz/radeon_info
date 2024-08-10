@@ -4,3 +4,8 @@
 
 ## requirements: 
 ##      - lshw package
+
+Usage:
+```
+./radeon_info
+```
