@@ -58,7 +58,7 @@ fn command_execution(command: &str) -> Output {
             .arg("-c")
             .arg(command)
             .output()
-            .expect("Failed to execute command");
+            .expect("Failed to execute bash script");
 
         output
 }
