@@ -1,70 +1,47 @@
-use std::process::{Command, Output};
-
-fn get_gpu_info(info_type: &str) -> String {
-    let mut command = String::from("cat ");
-    let mut path = String::new();
-
-    // Frequency case
-    if info_type == "frequency" {
-        path = String::from("/sys/class/drm/card*/device/pp_dpm_sclk");
-
-        command += &path;
-
-        println!("Frequency of GPU: ");
-        let output = command_execution(&command);
-
-        if output.status.success() {
-            let result = String::from_utf8_lossy(&output.stdout);
-            String::from(result)
-        } else {
-            let result = String::from_utf8_lossy(&output.stderr);
-            String::from(result)
-        }
-
-    // Temperature case
-    } else if info_type == "temperature" {
-        path = String::from("/sys/class/drm/card*/device/hwmon/hwmon*/temp1_input");
-
-        command += &path;
-
-        println!("Temperature of GPU: ");
-        let output = command_execution(&command);
-
-            // When output is valid, converting from utf8_lossy to String
-        if output.status.success() {
-            let result = String::from_utf8_lossy(&output.stdout);
-            let str_result = String::from(result);
-
-            /* Converting str_result without whitespaces, dividing by 1000 and
-            and then returning as string */ 
-            match str_result.trim().parse::<i32>() {
-                Ok(num) => {
-                    (num / 1000).to_string()
-                },
-                Err(error) => panic!("Could not parse to i32!")
-            }
-
-        } else {
-            let result = String::from_utf8_lossy(&output.stderr);
-            String::from(result)
-        }
-    } else {
-        panic!("Could not find GPU property.");
-    }
-}
-
-fn command_execution(command: &str) -> Output {
-    let output = Command::new("bash")
-            .arg("-c")
-            .arg(command)
-            .output()
-            .expect("Failed to execute bash script");
-
-        output
-}
+use std::{fs::read_to_string, path::PathBuf};
+use glob::{glob};
 
 fn main() {
     println!("This is a radeon_info program in beta version\n");
-    println!("{}", get_gpu_info("frequency"));
-    println!("{}", get_gpu_info("temperature")); // Other info_types will be added later
+    println!("{}", get_gpu_info("frequency").0);
+    println!("{}", get_gpu_info("temperature").0); // Other info_types will be added later
+}
+
+fn get_gpu_info(info_type: &str) -> (String, std::io::Result<()>) {
+    // Frequency case
+    if info_type == "frequency" {
+        let path = PathBuf::from("/sys/class/drm/card0/device/pp_dpm_sclk");
+        let file_content = read_to_string(path).unwrap();
+
+        let output = String::from(format!("Frequency of GPU:\n{}", &file_content));
+
+        (output, Ok(()))
+
+    // Temperature case
+    } else if info_type == "temperature" {
+        // Setting the temperature file path in Linux
+        let path = PathBuf::from("/sys/class/drm/card*/device/hwmon/hwmon*/temp1_input");
+        let temp_path = glob(path.to_str().unwrap()).unwrap();
+        let temp_path = temp_path.into_iter().next().unwrap();
+
+        let file_content = match read_to_string(temp_path.expect("error")) {
+            Ok(content) => content,
+            Err(e) => {
+                return (String::from(format!("Could not read the temperature {:?}", &e)), Err(e));
+            }
+        };        
+
+        let fixed_content = match file_content.trim().parse::<i32>() {
+            Ok(num) => (num / 1000).to_string(), // Dividing by 1000 to get the temperature in Celsius
+            Err(e) => {
+                return (String::from("Could not parse the temperature value."), Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Parsing error")));
+            }
+        };
+
+        let output = String::from(format!("Temperature of GPU: {}°C", fixed_content));
+        (output, Ok(()))
+    } else {
+        // This case will probably never be reached
+        panic!("Invalid info_type provided. Use 'frequency' or 'temperature'.");
+    }
 }
